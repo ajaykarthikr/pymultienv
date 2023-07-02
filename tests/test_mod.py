@@ -12,7 +12,6 @@ class TestReadEnv(unittest.TestCase):
         self.env_data = "VAR1=value1\nVAR2=value2\nVAR3=12121\n"
 
         self.temp_dir = tempfile.TemporaryDirectory()
-        print("temp dir", self.temp_dir.name)
 
     def test_read_env(self):
         file_path = os.path.join(self.temp_dir.name, ".env")
