@@ -16,15 +16,15 @@ def parse_env_file(path: str) -> dict[str, str]:
     :return: A dictionary of environment variables.
     :rtype: dict
     """
-    env = {}
+    env_file_val = {}
     with open(path, "r", encoding="utf-8") as file:
         for line in file:
             line = line.strip()
             if not line:
                 continue
             key, value = line.split("=", maxsplit=1)
-            env[key] = value
-    return env
+            env_file_val[key] = value
+    return env_file_val
 
 
 def search_env_file(start_path: str) -> str:
