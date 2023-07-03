@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "typedenv"
+name = "newenvreader"
 version = "0.1.0"
 description = ""
 authors = ["Ajay Karthik <ajaykarthik.r23@gmail.com>"]

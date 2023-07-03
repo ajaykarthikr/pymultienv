@@ -3,7 +3,7 @@ from unittest.mock import patch
 import os
 import tempfile
 
-from src.typedenv.main import GetEnv
+from src.newenvreader.main import GetEnv
 
 
 class TestReadEnv(unittest.TestCase):
