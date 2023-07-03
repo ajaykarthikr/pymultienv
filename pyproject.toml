@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "newenvreader"
-version = "0.1.0"
+version = "0.1.1"
 description = ""
 authors = ["Ajay Karthik <ajaykarthik.r23@gmail.com>"]
 readme = "README.md"
