@@ -9,7 +9,10 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     environment: release
-    
+    permissions:
+      # IMPORTANT: this permission is mandatory for trusted publishing
+      id-token: write
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -24,8 +27,5 @@ jobs:
 
       - name: Build and publish package
         run: |
-          poetry config pypi-token.pypi ${{ secrets.PYPI_TOKEN }}
           poetry build
           poetry publish
-        env:
-          POETRY_PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
