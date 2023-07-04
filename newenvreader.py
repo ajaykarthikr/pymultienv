@@ -3,7 +3,7 @@ This module provides utility functions for reading environment variables.
 """
 
 import os
-from typing import TypeVar
+from typing import TypeVar, Optional
 
 T = TypeVar("T")
 
@@ -22,8 +22,16 @@ def parse_env_file(path: str) -> dict[str, str]:
             line = line.strip()
             if not line:
                 continue
+
             key, value = line.split("=", maxsplit=1)
+            key = key.strip()
+            value = value.strip()
+            if value.startswith(("'")) and value.endswith(("'")) and len(value) > 2:
+                value = value[1:-1]
+            elif value.startswith(('"')) and value.endswith(('"')) and len(value) > 2:
+                value = value[1:-1]
             env_file_val[key] = value
+
     return env_file_val
 
 
@@ -52,6 +60,25 @@ def search_env_file(start_path: str) -> str:
     return search_env_file(parent_dir)
 
 
+def cast_bool(value: str) -> bool:
+    """Cast a string to a boolean.
+
+    :param value: The string to cast.
+    :type value: str
+    :return: The boolean value.
+    :rtype: bool
+    """
+    if not isinstance(value, str):
+        return bool(value)
+
+    if value.lower() in ("yes", "true", "t", "1", "on"):
+        return True
+    if value.lower() in ("no", "false", "f", "0", "off"):
+        return False
+
+    raise ValueError("Invalid boolean value")
+
+
 def load_env() -> dict[str, str]:
     """Load environment variables from the .env file or the system environment.
 
@@ -75,25 +102,27 @@ def load_env() -> dict[str, str]:
 loaded_env = load_env()
 
 
-def get_env(key: str, required: bool = True, cast: type[T] = str) -> T:
+def get_env(key: str, cast: type[T] = str, default: Optional[T] = None) -> T:
     """Load environment variable from the .env file or the system environment.
 
     :param key: The environment variable key.
     :type key: str
-    :param required: Whether the environment variable is required, defaults to True
-    :type required: bool, optional
     :param cast: The type to cast the environment variable to, defaults to str
     :type cast: type, optional
+    :param default: The default value to return if the environment variable is not found, defaults to None
+    :type default: Optional[T], optional
     :raises KeyError: If the environment variable is not found and is required.
     :return: The environment variable value.
     :rtype: str
     """
     try:
         val = loaded_env[key]
-        return cast(val)
     except KeyError as err:
-        if required:
+        if default is not None:
+            val = default
+        else:
             raise KeyError(f"Environment variable {key} is not found") from err
-        val = ""
 
+    if cast is bool:
+        return cast_bool(val)
     return cast(val)
