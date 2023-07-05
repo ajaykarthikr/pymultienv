@@ -3,9 +3,25 @@ This module provides utility functions for reading environment variables.
 """
 
 import os
+from configparser import ConfigParser, MissingSectionHeaderError
 from typing import TypeVar, Optional
 
 T = TypeVar("T")
+
+
+def clean_env_var(value: str) -> str:
+    """Clean an environment variable value.
+
+    :param value: The value to clean.
+    :type value: str
+    :return: The cleaned value.
+    :rtype: str
+    """
+    if value.startswith(("'")) and value.endswith(("'")) and len(value) > 2:
+        return value[1:-1]
+    elif value.startswith(('"')) and value.endswith(('"')) and len(value) > 2:
+        return value[1:-1]
+    return value
 
 
 def parse_env_file(path: str) -> dict[str, str]:
@@ -25,13 +41,30 @@ def parse_env_file(path: str) -> dict[str, str]:
 
             key, value = line.split("=", maxsplit=1)
             key = key.strip()
-            value = value.strip()
-            if value.startswith(("'")) and value.endswith(("'")) and len(value) > 2:
-                value = value[1:-1]
-            elif value.startswith(('"')) and value.endswith(('"')) and len(value) > 2:
-                value = value[1:-1]
-            env_file_val[key] = value
+            env_file_val[key] = clean_env_var(value.strip())
 
+    return env_file_val
+
+
+def parse_ini_file(path: str) -> dict[str, str]:
+    """Parse a .ini file.
+
+    :param path: Path to the .ini file.
+    :type path: str
+    :return: A dictionary of environment variables.
+    :rtype: dict
+    """
+    parser = ConfigParser()
+    parser.optionxform = lambda option: option
+    with open(path, "r", encoding="utf-8") as file:
+        try:
+            parser.read_file(file)
+        except MissingSectionHeaderError as err:
+            raise ValueError(
+                "Invalid .ini file: File contains no settings section"
+            ) from err
+        # get alls key values from section settings
+        env_file_val = dict(parser.items("settings"))
     return env_file_val
 
 
@@ -49,7 +82,8 @@ def search_env_file(start_path: str) -> str:
 
     for root, _, files in os.walk(current_dir):
         for file in files:
-            if file.endswith(".env"):
+            # Check if it's file ending with .env or is settings.ini
+            if file.endswith(".env") or file == "settings.ini":
                 return os.path.join(root, file)
 
     parent_dir = os.path.dirname(current_dir)
@@ -92,10 +126,12 @@ def load_env() -> dict[str, str]:
 
     try:
         found_env_path = search_env_file(os.getcwd())
-        env.update(parse_env_file(found_env_path))
+        if found_env_path.endswith(".ini"):
+            env.update(parse_ini_file(found_env_path))
+        else:
+            env.update(parse_env_file(found_env_path))
     except FileNotFoundError:
         pass
-
     return env
 
 
