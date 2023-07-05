@@ -71,9 +71,9 @@ def cast_bool(value: str) -> bool:
     if not isinstance(value, str):
         return bool(value)
 
-    if value.lower() in ("yes", "true", "t", "1", "on"):
+    if value.lower() in ("yes", "true", "t", "1", "on", "y"):
         return True
-    if value.lower() in ("no", "false", "f", "0", "off"):
+    if value.lower() in ("no", "false", "f", "0", "off", "n", ""):
         return False
 
     raise ValueError("Invalid boolean value")
