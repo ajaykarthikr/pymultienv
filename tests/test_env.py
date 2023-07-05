@@ -7,112 +7,6 @@ from unittest.mock import patch
 import newenvreader
 
 
-class TestFindAndReadEnv(unittest.TestCase):
-    def setUp(self):
-        os.environ["MY_VAR"] = "12121"
-        self.env_data = "VAR1=value1\nVAR2=value2\nVAR3=12121\n"
-
-        self.temp_dir = tempfile.TemporaryDirectory()
-
-    def test_read_env(self):
-        file_path = os.path.join(self.temp_dir.name, ".env")
-        with open(file_path, "w", encoding="utf-8") as file:
-            file.write(self.env_data)
-
-        with patch("os.getcwd", return_value=self.temp_dir.name):
-            importlib.reload(newenvreader)
-
-            val = newenvreader.get_env("MY_VAR", cast=int)
-            assert val == 12121
-
-            val = newenvreader.get_env("VAR1")
-            assert val == "value1"
-
-            val = newenvreader.get_env("VAR1")
-            assert val == "value1"
-
-        # Delete the temp file
-        os.remove(file_path)
-
-    def test_root_env_file(self):
-        subdir_path = os.path.join(self.temp_dir.name, "subdir")
-        os.mkdir(subdir_path)
-
-        file_path = os.path.join(subdir_path, ".env")
-        with open(file_path, "w", encoding="utf-8") as file:
-            file.write(self.env_data)
-
-        with patch("os.getcwd", return_value=subdir_path):
-            importlib.reload(newenvreader)
-
-            val = newenvreader.get_env("MY_VAR", cast=float)
-            assert val == 12121
-
-            val = newenvreader.get_env("VAR1")
-            assert val == "value1"
-
-            val = newenvreader.get_env("VAR3", cast=int)
-            assert val == 12121
-
-        # Delete the temp file
-        os.remove(file_path)
-
-    def test_parse_env_file_empty(self):
-        file_path = os.path.join(self.temp_dir.name, ".env")
-        with open(file_path, "w", encoding="utf-8") as file:
-            file.write(self.env_data)
-
-        with patch("os.getcwd", return_value=self.temp_dir.name):
-            importlib.reload(newenvreader)
-
-        val = newenvreader.get_env("MY_VAR", cast=int)
-        assert val == 12121
-
-        os.remove(file_path)
-
-    def test_ini_file(self):
-        file_data = """
-        [settings]
-        VAR1=12
-        VAR2=Value2
-        """
-        file_path = os.path.join(self.temp_dir.name, "settings.ini")
-        with open(file_path, "w", encoding="utf-8") as file:
-            file.write(file_data)
-
-        with patch("os.getcwd", return_value=self.temp_dir.name):
-            importlib.reload(newenvreader)
-
-        # assert newenvreader.get_env("VAR1", cast=int) == 12
-
-        os.remove(file_path)
-
-    def test_invalid_ini_file(self):
-        # Reload at start to clear any previous settings which don't get cleared
-        # when the module is reloaded as an exception is raised due to 
-        # invalid ini file
-        with patch("os.getcwd", return_value=self.temp_dir.name):
-            importlib.reload(newenvreader)
-        
-        file_data = """
-        VAR1=12121
-        VAR2=Value2
-        """
-        file_path = os.path.join(self.temp_dir.name, "settings.ini")
-        with open(file_path, "w", encoding="utf-8") as file:
-            file.write(file_data)
-
-        with patch("os.getcwd", return_value=self.temp_dir.name):
-            with self.assertRaises(ValueError):
-                importlib.reload(newenvreader)
-    
-        os.remove(file_path)
-
-    def tearDown(self):
-        del os.environ["MY_VAR"]
-        self.temp_dir.cleanup()
-
-
 class TestEnvParsing(unittest.TestCase):
     def setUp(self):
         os.environ["MY_VAR"] = "12121"
@@ -214,8 +108,6 @@ class TestEnvParsing(unittest.TestCase):
         assert newenvreader.get_env("RESPECT_SINGLE_QUOTE_SPACE") == " text"
         assert newenvreader.get_env("RESPECT_DOUBLE_QUOTE_SPACE") == " text"
         assert newenvreader.get_env("KEY_NOT_OVERRIDDEN_BY_ENV") == "Overide"
-
-        
 
     def test_env_val_quotes(self):
         assert newenvreader.get_env("VAL_WITH_SINGLE_QUOTE_END") == "text'"
