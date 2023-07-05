@@ -24,8 +24,11 @@ jobs:
 
       - name: Install Poetry
         run: curl -sSL https://install.python-poetry.org | python -
-
+          
       - name: Build and publish package
         run: |
           poetry build
-          poetry publish
+
+      - name: Publish package distributions to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+
